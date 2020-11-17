@@ -1,27 +1,38 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using Microsoft.FlightSimulator.SimConnect;
+using System;
 using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.FlightSimulator.SimConnect;
 
 namespace NarrativeHorizons
 {
     public class EventThread : IDisposable
     {
+        public int SleepTime
+        {
+            get
+            {
+                lock (_lock)
+                    return _sleepTime;
+            }
+            set
+            {
+                lock (_lock)
+                    _sleepTime = value;
+            }
+        }
+
+        private int _sleepTime = 100;
         private bool _disposedValue;
-        private SimVarWrapper _wrapper;
+        private Func<bool> _callback;
         private bool _isStopping = false;
         private Thread _thread = null;
         private object _lock = new object();
 
-        public EventThread(SimVarWrapper wrapper)
+        public EventThread(Func<bool> callback)
         {
             lock (_lock)
                 _isStopping = false;
 
-            _wrapper = wrapper;
+            _callback = callback;
 
             StartThread();
         }
@@ -30,6 +41,9 @@ namespace NarrativeHorizons
         {
             if (_thread != null)
                 StopThread();
+
+            if (_callback == null)
+                throw new Exception("Unable to start thread because a callback method was not specified.");
 
             _thread = new Thread(ThreadBody);
 
@@ -73,9 +87,21 @@ namespace NarrativeHorizons
         {
             while (!IsStopping())
             {
-                _wrapper.OnTick(SIMCONNECT_SIMOBJECT_TYPE.USER);
+                if (_callback == null)
+                {
+                    StopThread();
+                    return;
+                }
 
-                Thread.Sleep(100);
+                var cbResult = _callback();
+
+                if (!cbResult)
+                {
+                    StopThread();
+                    return;
+                }
+
+                Thread.Sleep(SleepTime);
             }
         }
 
@@ -85,6 +111,7 @@ namespace NarrativeHorizons
                 return _isStopping;
         }
 
+        #region IDisposable
         protected virtual void Dispose(bool disposing)
         {
             if (!_disposedValue)
@@ -107,5 +134,6 @@ namespace NarrativeHorizons
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
+        #endregion
     }
 }

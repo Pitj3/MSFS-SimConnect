@@ -1,6 +1,6 @@
-﻿using System;
+﻿using Microsoft.FlightSimulator.SimConnect;
+using System;
 using System.Collections.Generic;
-using Microsoft.FlightSimulator.SimConnect;
 
 namespace NarrativeHorizons
 {
@@ -18,7 +18,19 @@ namespace NarrativeHorizons
 
         private EventThread _thread = null;
 
+        private Func<bool> _eventCallback = null;
+
         private bool _disposedValue;
+
+        public SimVarWrapper() : this(null)
+        {
+
+        }
+
+        public SimVarWrapper(Func<bool> eventCallback)
+        {
+            _eventCallback = eventCallback;
+        }
 
         public bool Connect()
         {
@@ -55,6 +67,11 @@ namespace NarrativeHorizons
             return _isConnected;
         }
 
+        public bool IsConnected()
+        {
+            return _isConnected;
+        }
+
         public void Disconnect()
         {
             StopThread();
@@ -64,6 +81,16 @@ namespace NarrativeHorizons
 
             _simConnect = null;
             _isConnected = false;
+        }
+
+        private bool OnEventTick()
+        {
+            OnTick(SIMCONNECT_SIMOBJECT_TYPE.USER);
+
+            if (_eventCallback != null)
+                return _eventCallback();
+            else
+                return true;
         }
 
         private bool RegisterToSimConnect(SimVarRequest simvarRequest)
@@ -174,7 +201,7 @@ namespace NarrativeHorizons
             if (_thread != null)
                 StopThread();
 
-            _thread = new EventThread(this);
+            _thread = new EventThread(OnEventTick);
         }
 
         private void StopThread()
@@ -186,7 +213,7 @@ namespace NarrativeHorizons
             }
         }
 
-#region "IDisposable"
+        #region "IDisposable"
 
         protected virtual void Dispose(bool disposing)
         {
@@ -210,6 +237,6 @@ namespace NarrativeHorizons
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
-#endregion
+        #endregion
     }
 }
