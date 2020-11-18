@@ -1,36 +1,44 @@
-﻿using Microsoft.FlightSimulator.SimConnect;
-using System;
+﻿using System;
 using System.Threading;
 
 namespace NarrativeHorizons
 {
-    public class EventThread : IDisposable
+    /// <summary>
+    /// A wrapper around a Thread that repeatedly calls the specified callback function until it is shutdown/disposed.
+    /// </summary>
+    public class LoopThread : IDisposable
     {
-        public int SleepTime
+        /// <summary>
+        /// The duration of the interval in between each loop iteration in milliseconds.
+        /// </summary>
+        public int LoopInterval
         {
             get
             {
                 lock (_lock)
-                    return _sleepTime;
+                    return _loopInterval;
             }
             set
             {
                 lock (_lock)
-                    _sleepTime = value;
+                    _loopInterval = value;
             }
         }
 
-        private int _sleepTime = 100;
+        private int _loopInterval = 100;
         private bool _disposedValue;
-        private Func<bool> _callback;
+        private Func<bool, bool> _callback;
         private bool _isStopping = false;
         private Thread _thread = null;
         private object _lock = new object();
 
-        public EventThread(Func<bool> callback)
+        public LoopThread(Func<bool, bool> callback, int loopInterval = 100)
         {
             lock (_lock)
+            {
                 _isStopping = false;
+                _loopInterval = loopInterval;
+            }
 
             _callback = callback;
 
@@ -50,26 +58,23 @@ namespace NarrativeHorizons
             _thread.Start();
         }
 
-        private void StopThread()
+        public void StopThread()
         {
             if (_thread == null)
                 return;
 
-            var isRunning = (_thread.ThreadState.HasFlag(ThreadState.Running)
-                            || _thread.ThreadState.HasFlag(ThreadState.Suspended)
-                            || _thread.ThreadState.HasFlag(ThreadState.SuspendRequested)
-                            || _thread.ThreadState.HasFlag(ThreadState.Unstarted));
+            lock (_lock)
+                _isStopping = true;
 
-            var startTime = new DateTime();
+            var isRunning = IsRunning();
+
+            var startTime = DateTime.Now;
 
             while (isRunning && (DateTime.Now - startTime).TotalSeconds < 5)
             {
                 Thread.Sleep(10);
 
-                isRunning = (_thread.ThreadState.HasFlag(ThreadState.Running)
-                            || _thread.ThreadState.HasFlag(ThreadState.Suspended)
-                            || _thread.ThreadState.HasFlag(ThreadState.SuspendRequested)
-                            || _thread.ThreadState.HasFlag(ThreadState.Unstarted));
+                isRunning = IsRunning();
             }
 
             try
@@ -93,19 +98,43 @@ namespace NarrativeHorizons
                     return;
                 }
 
-                var cbResult = _callback();
-
-                if (!cbResult)
+                try
                 {
-                    StopThread();
-                    return;
+                    var cbResult = _callback(false);
+
+                    if (!cbResult)
+                    {
+                        StopThread();
+                        return;
+                    }
+                }
+                catch (ThreadAbortException)
+                { }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("An error has occurred in LoopThread's callback function. Error: " + ex.ToString());
                 }
 
-                Thread.Sleep(SleepTime);
+                Thread.Sleep(LoopInterval);
+            }
+
+            var cbCleanupResult = _callback(true);
+
+            if (!cbCleanupResult)
+            {
+                StopThread();
+                return;
             }
         }
 
-        private bool IsStopping()
+        public bool IsRunning()
+        {
+            return (!_thread.ThreadState.HasFlag(ThreadState.Stopped)
+                            && !_thread.ThreadState.HasFlag(ThreadState.Aborted)
+                            && !_thread.ThreadState.HasFlag(ThreadState.Unstarted));
+        }
+
+        public bool IsStopping()
         {
             lock (_lock)
                 return _isStopping;

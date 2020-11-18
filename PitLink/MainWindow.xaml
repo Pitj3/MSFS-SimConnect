@@ -40,6 +40,16 @@
                 </TransformGroup>
             </Button.RenderTransform>
         </Button>
+        <Button Content="Test Async" HorizontalAlignment="Left" Margin="10,98,0,0" VerticalAlignment="Top" Width="120" Height="25" RenderTransformOrigin="0.5,0.5" Click="TestAsync_Click">
+            <Button.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform/>
+                    <SkewTransform/>
+                    <RotateTransform Angle="0.078"/>
+                    <TranslateTransform/>
+                </TransformGroup>
+            </Button.RenderTransform>
+        </Button>
         <Ellipse HorizontalAlignment="Left" Height="14" Margin="141,72,0,0" Stroke="Black" VerticalAlignment="Top" Width="14" x:Name="ConnectedCom">
             <Ellipse.Style>
                 <Style TargetType="Ellipse">
@@ -54,6 +64,5 @@
                 </Style>
             </Ellipse.Style>
         </Ellipse>
-
     </Grid>
 </Window>

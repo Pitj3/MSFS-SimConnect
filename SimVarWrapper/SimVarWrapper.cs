@@ -1,5 +1,6 @@
 ﻿using Microsoft.FlightSimulator.SimConnect;
 using System;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 
 namespace NarrativeHorizons
@@ -16,20 +17,13 @@ namespace NarrativeHorizons
 
         private bool _isConnected = false;
 
-        private EventThread _thread = null;
-
-        private Func<bool> _eventCallback = null;
+        private LoopThread _thread = null;
 
         private bool _disposedValue;
 
-        public SimVarWrapper() : this(null)
+        public SimVarWrapper()
         {
-
-        }
-
-        public SimVarWrapper(Func<bool> eventCallback)
-        {
-            _eventCallback = eventCallback;
+            StartThread();
         }
 
         public bool Connect()
@@ -52,17 +46,14 @@ namespace NarrativeHorizons
             _simConnect.OnRecvQuit += new SimConnect.RecvQuitEventHandler(SimConnect_OnRecvQuit);
             _simConnect.OnRecvSimobjectDataBytype += new SimConnect.RecvSimobjectDataBytypeEventHandler(SimConnect_OnRecvSimobjectDataBytype);
 
-            var startTime = new DateTime();
+            var startTime = DateTime.Now;
 
-            while (!_isConnected && (DateTime.Now - startTime).TotalSeconds >= 10)
+            while (!_isConnected && (DateTime.Now - startTime).TotalSeconds <= 10)
             {
                 System.Threading.Thread.Sleep(100);
 
                 _simConnect.ReceiveMessage();
             }
-
-            if (_isConnected)
-                StartThread();
 
             return _isConnected;
         }
@@ -74,8 +65,6 @@ namespace NarrativeHorizons
 
         public void Disconnect()
         {
-            StopThread();
-
             if (_isConnected && _simConnect != null)
                 _simConnect.Dispose();
 
@@ -83,43 +72,51 @@ namespace NarrativeHorizons
             _isConnected = false;
         }
 
-        private bool OnEventTick()
+        private bool OnEventTick(bool isShuttingDown)
         {
+            if (!_isConnected || _simConnect == null)
+                return true;
+
             OnTick(SIMCONNECT_SIMOBJECT_TYPE.USER);
 
-            if (_eventCallback != null)
-                return _eventCallback();
-            else
-                return true;
+            return true;
         }
 
         private bool RegisterToSimConnect(SimVarRequest simvarRequest)
         {
-            if (_simConnect != null)
-            {
-                /// Define a data structure
-                _simConnect.AddToDataDefinition((eDummy)simvarRequest.Def, simvarRequest.Name, simvarRequest.Units, SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
-                /// IMPORTANT: Register it with the simconnect managed wrapper marshaller
-                /// If you skip this step, you will only receive a uint in the .dwData field.
-                _simConnect.RegisterDataDefineStruct<double>((eDummy)simvarRequest.Def);
-
-                return true;
-            }
-            else
-            {
+            if (_simConnect == null)
                 return false;
-            }
+
+            /// Define a data structure
+            _simConnect.AddToDataDefinition((eDummy)simvarRequest.Def, simvarRequest.Name, simvarRequest.Units, SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
+
+            /// IMPORTANT: Register it with the simconnect managed wrapper marshaller
+            /// If you skip this step, you will only receive a uint in the .dwData field.
+            _simConnect.RegisterDataDefineStruct<double>((eDummy)simvarRequest.Def);
+
+            return true;
+        }
+
+        private void UnregisterToSimConnect(SimVarRequest simvarRequest)
+        {
+            if (_simConnect == null)
+                return;
+
+            _simConnect.ClearDataDefinition((eDummy)simvarRequest.Def);
         }
 
         public void OnTick(SIMCONNECT_SIMOBJECT_TYPE simObjectType)
         {
+            if (_simConnect == null)
+                return;
+
             _simConnect.ReceiveMessage();
 
             foreach (SimVarRequest simVarRequest in _simVarRequests)
             {
                 if (!simVarRequest.Pending)
                 {
-                    _simConnect?.RequestDataOnSimObjectType((eDummy)simVarRequest.Request, (eDummy)simVarRequest.Def, 0, simObjectType);
+                    _simConnect.RequestDataOnSimObjectType((eDummy)simVarRequest.Request, (eDummy)simVarRequest.Def, 0, simObjectType);
                     simVarRequest.Pending = true;
                 }
                 else
@@ -131,18 +128,33 @@ namespace NarrativeHorizons
 
         private void SimConnect_OnRecvSimobjectDataBytype(SimConnect sender, SIMCONNECT_RECV_SIMOBJECT_DATA_BYTYPE data)
         {
-            foreach (SimVarRequest oSimvarRequest in _simVarRequests)
+            // Loop backwards because we may need to remove items from the list in the case of one-time events, etc.
+            for (int i = _simVarRequests.Count - 1; i >= 0; --i)
             {
+                var request = _simVarRequests[i];
+
                 uint iRequest = data.dwRequestID;
 
-                if (iRequest == (uint)oSimvarRequest.Request)
+                if (iRequest == (uint)request.Request)
                 {
                     double dValue = (double)data.dwData[0];
-                    oSimvarRequest.Value = dValue;
-                    oSimvarRequest.Pending = false;
-                    oSimvarRequest.StillPending = false;
 
-                    Console.WriteLine(oSimvarRequest.Name + " Value: " + dValue);
+                    Console.WriteLine(request.Name + " Value: " + dValue);
+
+                    request.Value = dValue;
+                    request.Pending = false;
+                    request.StillPending = false;
+
+                    // Dispatch the OnSimVarChanged event to any subscribed listeners.
+                    request.DispatchSimVarChanged(new SimVarUpdatedEventArgs(request));
+
+                    if (request.OneTimeEvent)
+                    {
+                        // This is a one-time event, unregister it.
+                        UnregisterToSimConnect(request);
+
+                        _simVarRequests.RemoveAt(i);
+                    }
                 }
             }
         }
@@ -167,20 +179,63 @@ namespace NarrativeHorizons
             string newUnitRequest = unit;
             var reqId = ++_lastReqId;
 
-            SimVarRequest oSimvarRequest = new SimVarRequest
+            SimVarRequest request = new SimVarRequest
             {
                 Def = (eDummy)reqId,
                 Request = (eDummy)reqId,
                 Name = newSimvarRequest,
-                Units = newUnitRequest
+                Units = newUnitRequest,
+                OneTimeEvent = false
             };
 
-            oSimvarRequest.Pending = !RegisterToSimConnect(oSimvarRequest);
-            oSimvarRequest.StillPending = oSimvarRequest.Pending;
+            request.Pending = !RegisterToSimConnect(request);
+            request.StillPending = request.Pending;
 
-            _simVarRequests.Add(oSimvarRequest);
+            _simVarRequests.Add(request);
 
-            return oSimvarRequest;
+            return request;
+        }
+
+        public Task<Double> GetValueAsync(string simvar, string unit)
+        {
+            Console.WriteLine("Adding a one-time request for value: " + simvar);
+
+            string newSimvarRequest = simvar;
+            string newUnitRequest = unit;
+            var reqId = ++_lastReqId;
+
+            SimVarRequest request = new SimVarRequest
+            {
+                Def = (eDummy)reqId,
+                Request = (eDummy)reqId,
+                Name = newSimvarRequest,
+                Units = newUnitRequest,
+                OneTimeEvent = true
+            };
+
+            double retValue = 0d;
+            bool isFinished = false;
+
+            request.SimVarChanged += (object sender, SimVarUpdatedEventArgs e) =>
+            {
+                retValue = e.Request.Value;
+                isFinished = true;
+            };
+
+            request.Pending = !RegisterToSimConnect(request);
+            request.StillPending = request.Pending;
+
+            _simVarRequests.Add(request);
+
+            return Task<Double>.Factory.StartNew(() =>
+            {
+                while (!isFinished)
+                {
+                    System.Threading.Thread.Yield();
+                }
+
+                return retValue;
+            });
         }
 
         public void SetValue(string simvar, string unit, double value)
@@ -201,7 +256,7 @@ namespace NarrativeHorizons
             if (_thread != null)
                 StopThread();
 
-            _thread = new EventThread(OnEventTick);
+            _thread = new LoopThread(OnEventTick);
         }
 
         private void StopThread()
@@ -222,6 +277,7 @@ namespace NarrativeHorizons
                 if (disposing)
                 {
                     // Dispose managed state (managed objects)
+                    StopThread();
                     Disconnect();
                 }
 
