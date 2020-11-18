@@ -1,0 +1,138 @@
+.survival-inventory-component {
+	flex-grow: 1;
+
+	.window-columns {
+		flex-grow: 1;
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: stretch;
+		padding: 4px;
+
+		.window-column {
+			min-width: 17.15vw;
+			margin: 4px;
+			flex-grow: 1;
+			flex-shrink: 1;
+			display: flex;
+			flex-direction: column;
+			justify-content: flex-start;
+			align-items: stretch;
+			border: 1px solid white;
+			border-radius: 4px;
+
+			&.around-me .column-content {
+				width: calc(100% - 2px);
+				overflow-x: hidden;
+				overflow-y: auto;
+				display: flex;
+				flex-grow: 1;
+				flex-shrink: 1;
+				flex-direction: column;
+				justify-content: space-between;
+				align-items: stretch;
+			}
+
+			&.player-info {
+				width: 50%;
+				flex-grow: 1;
+				flex-shrink: 0;
+				display: flex;
+				flex-direction: column;
+				justify-content: flex-start;
+				align-items: stretch;
+
+				.player-details {
+					display: flex;
+					flex-direction: row;
+					justify-content: space-between;
+					align-items: stretch;
+
+					.player-details-half {
+						width: 50%;
+						padding: 8px;
+						display: flex;
+						flex-direction: column;
+						justify-content: space-between;
+						align-items: stretch;
+					}
+
+					.player-picture {
+						width: 100%;
+						height: 200px;
+						margin-bottom: 8px;
+						flex-shrink: 1;
+						flex-grow: 1;
+						background-color: rgba(138, 138, 138, 0.432);
+						border-radius: 4px;
+					}
+
+					.player-name-outer {
+						width: 100%;
+						height: 42px;
+						flex-grow: 0;
+						flex-shrink: 1;
+						display: flex;
+						flex-direction: row;
+						justify-content: center;
+						align-items: center;
+					}
+
+					.player-name {
+						padding: 0 14px;
+						line-height: 42px;
+						background-color: rgba(0, 0, 0, 0.32);
+						border: 1px solid #717171;
+						border-radius: 4px;
+					}
+
+					.detailed-player-status {
+						height: 280px;
+						flex-grow: 1;
+						background-color: rgba(138, 138, 138, 0.432);
+						border-radius: 4px;
+					}
+				}
+			}
+		}
+
+		.column-title {
+			padding: 3px 10px;
+			border-bottom: 1px solid white;
+			background-color: rgba(200, 200, 200, 0.2);
+
+			p {
+				font-size: 16pt;
+			}
+
+			&.center {
+				text-align: center;
+			}
+		}
+
+		.item-list {
+			width: 100%;
+			// max-height: 25vh;
+			padding: 2px 4px;
+			display: flex;
+			flex-direction: row;
+			justify-content: flex-start;
+			align-items: flex-start;
+			flex-wrap: wrap;
+
+			.item {
+				background-color: rgba(0, 0, 0, 0.432);
+				border: 1px solid #333;
+				border-radius: 3px;
+			}
+		}
+
+		.container-list {
+			padding: 0 2px;
+		}
+
+		.accordion-list-outer {
+			padding: 0;
+		}
+	}
+}

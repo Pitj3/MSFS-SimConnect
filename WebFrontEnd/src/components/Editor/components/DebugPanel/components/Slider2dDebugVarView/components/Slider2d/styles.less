@@ -1,0 +1,40 @@
+.slider2d {
+	.slider-surface {
+		position: relative;
+		width: 160px;
+		height: 160px;
+		margin: 2px auto 3px auto;
+		overflow: hidden;
+		background-color: rgba(0, 0, 0, 0.5);
+		border-radius: 3px;
+		border: 1px solid #828282;
+		transition: background-color linear 180ms;
+		user-select: none;
+
+		&:hover {
+			background-color: rgba(58, 58, 58, 0.904);
+		}
+
+		.drag-handle {
+			position: absolute;
+			width: 12px;
+			height: 12px;
+			border-radius: 50%;
+			overflow: hidden;
+			background-color: white;
+			transition: transform linear 100ms;
+
+			&:hover {
+				transform: scale(1.25);
+			}
+		}
+	}
+
+	&.slider2d-small {
+		.slider-surface {
+			width: 80px;
+			height: 80px;
+			margin: 2px auto 3px auto;
+		}
+	}
+}

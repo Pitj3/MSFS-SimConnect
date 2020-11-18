@@ -1,0 +1,87 @@
+.attention-box-component {
+    position: relative;
+    border-radius: 4px;
+    overflow: hidden;
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: stretch;
+
+    .box-content {
+        min-width: 6px;
+        min-height: 6px;
+        padding: 6px 14px;
+		flex-grow: 1;
+        border: 4px solid white;
+        border-radius: 4px;
+        overflow: hidden;
+        background-color: rgba(0, 0, 0, 0.5);
+        color: white;
+    }
+
+    .box-inner-vertical {
+        position: absolute;
+        top: 0;
+        left: 2px;
+        right: 2px;
+        bottom: 0;
+        border-left: 2px solid rgba(0, 0, 0, 0.6);
+        border-right: 2px solid rgba(0, 0, 0, 0.6);
+        border-radius: 2px;
+
+		transform: scale(1) rotateX(28deg);
+        animation-duration: 2.2s;
+        animation-iteration-count: infinite;
+        animation-timing-function: linear;
+    }
+
+    .box-inner-horizontal {
+        position: absolute;
+        top: 2px;
+        left: 0;
+        right: 0;
+        bottom: 3px;
+        border-top: 2px solid rgba(0, 0, 0, 0.6);
+        border-bottom: 2px solid rgba(0, 0, 0, 0.6);
+        border-radius: 4px;
+
+		transform: scale(1) rotateY(20deg);
+        animation-duration: 4.2s;
+        animation-iteration-count: infinite;
+        animation-timing-function: linear;
+    }
+
+	&.animated {
+		.box-inner-vertical {
+			animation-name: attention-box-rotate-x;
+		}
+
+		.box-inner-horizontal {
+			animation-name: attention-box-rotate-y;
+		}
+	}
+}
+
+@keyframes attention-box-rotate-x {
+    0% {
+        transform: scale(1) rotateX(30deg);
+    }
+    50% {
+        transform: scale(1) rotateX(90deg);
+    }
+    100% {
+        transform: scale(1) rotateX(30deg);
+    }
+}
+
+@keyframes attention-box-rotate-y {
+    0% {
+        transform: scale(1) rotateY(20deg);
+    }
+    50% {
+        transform: scale(1) rotateY(90deg);
+    }
+    100% {
+        transform: scale(1) rotateY(20deg);
+    }
+}

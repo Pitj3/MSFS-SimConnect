@@ -1,0 +1,135 @@
+.main-menu-red-component {
+	.main-menu-background,
+	.main-menu-background-white {
+		position: fixed;
+		height: 100vw;
+		overflow: hidden;
+
+		// opacity: 0.0;
+		// visibility: hidden;
+	}
+
+	.main-menu-background-white {
+		top: 0;
+		left: 0;
+		right: 0;
+
+		background-image: linear-gradient(0deg, #3a0000 60%, #880000 100%);
+		transform: scale(1.0);
+		z-index: 900;
+
+		transition: opacity linear 300ms,
+					visibility linear 300ms,
+					transform linear 400ms;
+	}
+
+	.main-menu-background {
+		top: -85vh;
+		left: -40vw;
+		width: 100vw;
+
+		border-radius: 50%;
+		// background-color: red;
+		background-image: linear-gradient(45deg, #5f0000 30%, #ff2626 85%);
+		transform: scale(0.0001);
+		z-index: 901;
+
+		transition: opacity linear 400ms,
+					visibility linear 400ms,
+					transform linear 260ms;
+	}
+
+	.main-menu {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		z-index: 950;
+		color: white;
+
+		.menu-content {
+			position: absolute;
+			top: 50%;
+
+			height: 300px;
+			margin-left: 120px;
+			transform: translateY(-50%);
+			z-index: 951;
+
+			opacity: 0.0;
+			visibility: hidden;
+
+			transition: opacity linear 100ms,
+						visibility linear 100ms;
+
+			&.section-right {
+				position: absolute;
+				top: 60px;
+				right: 24px;
+				width: 14vw;
+				color: black;
+			}
+		}
+
+		#quadrion-engine {
+			text-align: center;
+		}
+	}
+
+	&.show {
+		display: inline-block;
+		visibility: hidden;
+
+		.main-menu-background-white {
+			transition-delay: 0s;
+
+			opacity: 1.0;
+			visibility: visible;
+			transform: scale(1.0);
+		}
+		.main-menu-background {
+			transition-delay: 200ms;
+
+			opacity: 1.0;
+			visibility: visible;
+			transform: scale(1.4);
+		}
+
+		.main-menu {
+			.menu-content {
+				transition-delay: 240ms;
+
+				opacity: 1.0;
+				visibility: visible;
+			}
+		}
+	}
+
+	&.hide {
+		display: inline-block;
+		visibility: hidden;
+
+		.main-menu-background-white {
+			transition-delay: 200ms;
+
+			opacity: 0.0;
+			visibility: hidden;
+		}
+		.main-menu-background {
+			transition-delay: 0s;
+
+			opacity: 0.0;
+			visibility: hidden;
+			transform: scale(0.0001);
+		}
+		.main-menu {
+			.menu-content {
+				transition-delay: 180ms;
+
+				opacity: 0.0;
+				visibility: hidden;
+			}
+		}
+	}
+}

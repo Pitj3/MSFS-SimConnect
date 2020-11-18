@@ -1,0 +1,38 @@
+.weapon-info-component {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-end;
+    text-align: center;
+    color: white;
+    opacity: 0.0;
+    visibility: hidden;
+    transition: opacity ease-out 0ms, visibility ease-out 0ms;
+
+    .weapon-text {
+        display: inline-block;
+        padding: 1px 14px;
+        background-color: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .weapon-name {
+        margin-bottom: 8px;
+    }
+
+    .ammo-outer {
+        width: 130px;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    &.visible {
+        opacity: 1.0;
+        visibility: visible;
+        transition: opacity ease-out 400ms, visibility ease-out 400ms;
+    }
+}

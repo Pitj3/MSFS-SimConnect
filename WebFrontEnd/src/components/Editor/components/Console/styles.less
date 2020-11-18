@@ -1,0 +1,70 @@
+.dev-console {
+    opacity: 0.0;
+    visibility: hidden;
+    transition: opacity ease-out 300ms;
+    will-change: opacity;
+
+    &.visible {
+        opacity: 1.0;
+        visibility: visible;
+    }
+
+	.dev-console-body {
+		position: absolute;
+		top: 6px;
+		left: 6px;
+		right: 6px;
+		bottom: 46px;
+		padding: 8px;
+		font-size: 0.75rem;
+		font-weight: 400;
+		font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+		line-height: 1.46429em;
+		background-color: rgba(21, 21, 21, 0.7725490196078432);
+		border-radius: 3px;
+		overflow: hidden;
+		color: #cac9c9;
+	}
+
+	.dev-console-control-bar {
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: 0px;
+		height: 46px;
+
+		.text-box-outter {
+			position: absolute;
+			top: 8px;
+			left: 6px;
+			right: 94px;
+			bottom: 6px;
+		}
+		.text-box {
+			
+			// background-color: #444444;
+			// padding: 7px 8px 1px 8px;
+			// border-radius: 3px;
+
+			// font-size: 0.75rem;
+			// font-weight: 400;
+			// font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+			// line-height: 1.46429em;
+			color: rgb(190, 190, 190);
+		}
+
+		.submit-button-outter {
+			position: absolute;
+			top: 6px;
+			right: 6px;
+			bottom: 0;
+			width: 80px;
+
+			// font-size: 0.75rem;
+			// font-weight: 400;
+			// font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+			// line-height: 1.46429em;
+			color: rgb(224, 224, 224);
+		}
+	}
+}

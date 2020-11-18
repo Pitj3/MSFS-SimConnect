@@ -1,0 +1,56 @@
+.survival-in-game-mode {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+
+	.status-area {
+        position: fixed;
+        right: 10px;
+        bottom: 10px;
+		width: 126px;
+		height: 200px;
+        padding: 4px 14px;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: flex-start;
+
+		.status-item {
+			height: 100%;
+			display: flex;
+			flex-direction: column;
+			justify-content: space-between;
+			align-items: center;
+
+			.item-label {
+				margin-top: 2px;
+				flex-grow: 0;
+
+				.item-icon {
+					width: 28px;
+					height: 28px;
+					color: rgba(255, 255, 255, 0.3);
+					border-radius: 3px;
+					overflow: hidden;
+				}
+			}
+			.item-bar-outer {
+				flex-grow: 1;
+			}
+		}
+    }
+
+	.inventory-outer {
+		position: fixed;
+		top: 10%;
+		left: 10%;
+		right: 10%;
+		bottom: 10%;
+		display: flex;
+		flex-direction: row;
+		justify-content: center;
+		align-items: stretch;
+	}
+}

@@ -101,9 +101,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SimVarWrapper\SimVarWrapper.csproj">
+    <ProjectReference Include="..\MsfsSdkWrapper\MsfsSdkWrapper.csproj">
       <Project>{86350cc1-d148-453d-9832-5a5985f07631}</Project>
-      <Name>SimVarWrapper</Name>
+      <Name>MsfsSdkWrapper</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
