@@ -1,12 +1,11 @@
 import React from "react";
+import { Loader } from "@googlemaps/js-api-loader"
 import { ThemeProvider as MuiThemeProvider } from '@material-ui/core/styles';
 import createMuiTheme from '@material-ui/core/styles/createMuiTheme';
 import CssBaseline from '@material-ui/core/CssBaseline';
-import Editor from "./components/Editor";
 
 import "./app.less";
-import LoadingMode from "./modes/LoadingMode";
-import SurvivalInGameMode from "./modes/SurvivalInGame";
+import { Api, RequestMethods } from "./utils/Api";
 
 const theme = createMuiTheme({
 	palette: {
@@ -149,11 +148,55 @@ interface State {
 
 }
 
+declare var google: any;
+var map: any;
+
 export default class App extends React.Component<{}, State> {
+	private map: any;
+
 	constructor(props) {
 		super(props);
 
 		this.state = { }
+	}
+
+	componentDidMount() {
+		setTimeout(async () => {
+			const loader = new Loader({
+				apiKey: "AIzaSyCBho4MU9t-07VQlTAGvZYsVwJLF_X_p_s",
+				version: "weekly",
+			});
+			
+			await loader.load();
+
+			const uluru = { lat: -25.344, lng: 131.036 };
+
+			this.map = new google.maps.Map(document.getElementById("map") as HTMLElement, {
+				center: uluru,
+				zoom: 4,
+			});
+
+			setInterval(this.onTimerTick, 3000);
+		}, 10);
+	}
+
+	onTimerTick = async () => {
+		let response = await Api.sendRequest(RequestMethods.Get, "lat");
+		const latitude = await response.json();
+
+		response = await Api.sendRequest(RequestMethods.Get, "lon");
+		const longitude = await response.json();
+
+		console.log("Lat: ", latitude, ", Log: ", longitude);
+
+		// The location of Uluru
+		const uluru = { lat: latitude, lng: longitude };
+
+		// The marker, positioned at Uluru
+		const marker = new google.maps.Marker({
+			position: uluru,
+			map: this.map,
+		});
 	}
 
 	render() {
@@ -161,8 +204,8 @@ export default class App extends React.Component<{}, State> {
 			<MuiThemeProvider theme={theme}>
 				<CssBaseline />
 
-				
 			</MuiThemeProvider>
 		);
 	}
 }
+

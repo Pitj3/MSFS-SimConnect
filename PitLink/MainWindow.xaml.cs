@@ -15,6 +15,7 @@ namespace PitLink
         private LoopThread _comThread;
         private DateTime _lastBlinkTime = DateTime.Now;
         private SerialPort _serialPort;
+        private RestApiServer _api = null;
 
         public MainWindow()
         {
@@ -122,6 +123,12 @@ namespace PitLink
         {
             StopThread();
 
+            if (_api != null)
+            {
+                _api.Dispose();
+                _api = null;
+            }
+
             if (_sim != null)
             {
                 _sim.Dispose();
@@ -159,6 +166,11 @@ namespace PitLink
 
             _serialPort.Open();
             _serialPort.DataReceived += _serialPort_DataReceived;
+        }
+
+        private void StartServer_Click(object sender, RoutedEventArgs e)
+        {
+            _api = new RestApiServer(_sim);
         }
         #endregion
     }

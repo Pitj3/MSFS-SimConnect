@@ -44,6 +44,7 @@
     "webpack-merge": "^4.1.4"
   },
   "dependencies": {
+    "@googlemaps/js-api-loader": "^1.11.1",
     "image-webpack-loader": "^4.6.0",
     "moment": "^2.29.1",
     "react-grid-layout": "^1.0.0",

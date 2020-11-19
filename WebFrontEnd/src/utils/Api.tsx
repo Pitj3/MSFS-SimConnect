@@ -2,7 +2,7 @@ import { ObjectResponse, ResponseStatuses } from "../types/ApiResponses"
 import moment from "moment";
 import { UserError } from "../types/UserError";
 
-const API_URL = "http://localhost:12345";
+const API_URL = "http://localhost:29785/";
 
 export enum RequestMethods {
 	Get = 1,
@@ -97,7 +97,6 @@ export module Api {
 			method: getMethodString(method),
 			cache: "no-cache",
 			credentials: "same-origin",
-			mode: "cors",
 			headers: headers,
 			referrer: "no-referrer",
 			body:  (body != null ? JSON.stringify(body, serialize) : null),
