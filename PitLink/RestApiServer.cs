@@ -68,39 +68,50 @@ namespace PitLink
         public RestModule()
         {
             // Register the API endpoints.
-            Options("/lat", (req) =>
-            {
-                var response = this.Context.Response;
-
-                var res = new Nancy.Response();
-
-                res.WithHeader("Access-Control-Allow-Headers", "*");
-                res.WithHeader("Access-Control-Allow-Origin", "http://localhost:8080");
-                
-                this.Context.Response = res;
-
-                return res;
-            });
-
-            Get("/lat", async _ =>
+            RegisterCorsOptions("/latitude");
+            Get("/latitude", async _ =>
             {
                 var latitude = await Sim.GetValueAsync("PLANE LATITUDE", "degree");
 
-                var response = this.Context.Response;
-
-                Nancy.Response res = latitude.ToString();
-
-                res.WithContentType("application/json");
-                res.WithHeader("Access-Control-Allow-Headers", "*");
-                res.WithHeader("Access-Control-Allow-Origin", "http://localhost:8080");
-                res.WithStatusCode(HttpStatusCode.OK);
-                
-                this.Context.Response = res;
-
-                return res;
+                return WrapResponse(latitude.ToString());
             });
 
-            Options("/lon", (req) =>
+            RegisterCorsOptions("/longitude");
+            Get("/longitude", async _ =>
+            {
+                var longitude = await Sim.GetValueAsync("PLANE LONGITUDE", "degree");
+
+                return WrapResponse(longitude.ToString());
+            });
+
+            RegisterCorsOptions("/coordinates");
+            Get("/coordinates", (args) =>
+            {
+                var lat = (double)this.Context.Request.Query.latitude;
+                var lng = (double)this.Context.Request.Query.longitude;
+                
+                Sim.SetValue("PLANE LATITUDE", "degree", lat);
+                Sim.SetValue("PLANE LONGITUDE", "degree", lng);
+
+                return WrapResponse("success");
+            });
+        }
+
+        private Response WrapResponse(Response response)
+        {
+            response.WithContentType("application/json");
+            response.WithHeader("Access-Control-Allow-Headers", "*");
+            response.WithHeader("Access-Control-Allow-Origin", "http://localhost:8080");
+            response.WithStatusCode(HttpStatusCode.OK);
+
+            this.Context.Response = response;
+
+            return response;
+        }
+
+        private void RegisterCorsOptions(string path)
+        {
+            Options(path, (req) =>
             {
                 var response = this.Context.Response;
 
@@ -108,24 +119,6 @@ namespace PitLink
 
                 res.WithHeader("Access-Control-Allow-Headers", "*");
                 res.WithHeader("Access-Control-Allow-Origin", "http://localhost:8080");
-
-                this.Context.Response = res;
-
-                return res;
-            });
-
-            Get("/lon", async _ =>
-            {
-                var latitude = await Sim.GetValueAsync("PLANE LONGITUDE", "degree");
-
-                var response = this.Context.Response;
-
-                Nancy.Response res = latitude.ToString();
-
-                res.WithContentType("application/json");
-                res.WithHeader("Access-Control-Allow-Headers", "*");
-                res.WithHeader("Access-Control-Allow-Origin", "http://localhost:8080");
-                res.WithStatusCode(HttpStatusCode.OK);
 
                 this.Context.Response = res;
 

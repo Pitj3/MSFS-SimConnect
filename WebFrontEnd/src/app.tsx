@@ -144,12 +144,16 @@ const theme = createMuiTheme({
 	},
 });
 
-interface State {
+interface Coordinates {
+	latitude: number;
+	longitude: number;
+}
 
+interface State {
+	lastCoords: Coordinates | null;
 }
 
 declare var google: any;
-var map: any;
 
 export default class App extends React.Component<{}, State> {
 	private map: any;
@@ -157,7 +161,9 @@ export default class App extends React.Component<{}, State> {
 	constructor(props) {
 		super(props);
 
-		this.state = { }
+		this.state = {
+			lastCoords: null,
+		}
 	}
 
 	componentDidMount() {
@@ -169,33 +175,67 @@ export default class App extends React.Component<{}, State> {
 			
 			await loader.load();
 
-			const uluru = { lat: -25.344, lng: 131.036 };
+			let response = await Api.sendRequest(RequestMethods.Get, "latitude");
+			const latitude = await response.json();
+
+			response = await Api.sendRequest(RequestMethods.Get, "longitude");
+			const longitude = await response.json();
 
 			this.map = new google.maps.Map(document.getElementById("map") as HTMLElement, {
-				center: uluru,
-				zoom: 4,
+				center: { lat: latitude, lng: longitude },
+				zoom: 6,
 			});
 
-			setInterval(this.onTimerTick, 3000);
+			const marker = new google.maps.Marker({
+				position: { lat: latitude, lng: longitude },
+				map: this.map,
+			});
+
+			this.map.addListener("click", async (mapsMouseEvent) => {
+				const coords = mapsMouseEvent.latLng;
+
+				await Api.sendRequest(RequestMethods.Get, "coordinates", null, { latitude: coords.lat(), longitude: coords.lng() });
+			});
+
+			this.setState({
+				lastCoords: {
+					latitude: latitude,
+					longitude: longitude,
+				}
+			}, () => {
+				setInterval(this.onTimerTick, 3000);
+			});
 		}, 10);
 	}
 
 	onTimerTick = async () => {
-		let response = await Api.sendRequest(RequestMethods.Get, "lat");
+		const { lastCoords } = this.state;
+
+		let response = await Api.sendRequest(RequestMethods.Get, "latitude");
 		const latitude = await response.json();
 
-		response = await Api.sendRequest(RequestMethods.Get, "lon");
+		response = await Api.sendRequest(RequestMethods.Get, "longitude");
 		const longitude = await response.json();
+
+		if (lastCoords != null && Math.abs(latitude - lastCoords.latitude) < 0.001 && Math.abs(longitude - lastCoords.longitude) < 0.001) {
+			console.log("Skipping. Lat Delta: " + Math.abs(latitude - lastCoords.latitude) + ", Lng Delta: " + Math.abs(longitude - lastCoords.longitude));
+			return;
+		}
 
 		console.log("Lat: ", latitude, ", Log: ", longitude);
 
-		// The location of Uluru
 		const uluru = { lat: latitude, lng: longitude };
 
-		// The marker, positioned at Uluru
 		const marker = new google.maps.Marker({
 			position: uluru,
 			map: this.map,
+		});
+
+		this.setState({
+			lastCoords: {
+				latitude: latitude,
+				longitude: longitude,
+			}
 		});
 	}
 
