@@ -5,6 +5,7 @@ import createMuiTheme from '@material-ui/core/styles/createMuiTheme';
 import CssBaseline from '@material-ui/core/CssBaseline';
 
 import "./app.less";
+import ApiKeys from "../api-key.json";
 import { Api, RequestMethods } from "./utils/Api";
 
 const theme = createMuiTheme({
@@ -169,7 +170,7 @@ export default class App extends React.Component<{}, State> {
 	componentDidMount() {
 		setTimeout(async () => {
 			const loader = new Loader({
-				apiKey: "AIzaSyCBho4MU9t-07VQlTAGvZYsVwJLF_X_p_s",
+				apiKey: ApiKeys.googleMaps,
 				version: "weekly",
 			});
 			
